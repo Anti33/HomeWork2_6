@@ -6,14 +6,15 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.Scanner;
 
-public class EchoClient {
+public class ChatClient {
+    private static boolean exitLoop;
     Socket socket;  // 'эти три переменные нужны на уровне класса: socket, in, out
     private DataInputStream in;
     private DataOutputStream out;
 
     public static void main(String[] args) {/// тоже есть метод мейн
 
-        final EchoClient client = new EchoClient();
+        final ChatClient client = new ChatClient();
         client.start();
 
     }
@@ -23,11 +24,11 @@ public class EchoClient {
             try {
                 openConnection();
                 Scanner scanner = new Scanner(System.in);
-                while (true) {
+                while (!exitLoop) {
                     String outputMessage = scanner.nextLine();
                     out.writeUTF(outputMessage);  // посылка сообщений
                     if("/end".equalsIgnoreCase(outputMessage)){
-                                                break;
+                        break;
                     }
 
                 }
@@ -74,17 +75,20 @@ public class EchoClient {
                         while (true) {
                             String inputMessage = in.readUTF();
                             if("/end".equalsIgnoreCase(inputMessage)){
+                                out.writeUTF("/end");
+                                exitLoop = true;
                                 break;
                             }
                             System.out.println("от сервера: " + inputMessage);
                         }
                     }catch (IOException e){
-                        e.printStackTrace();
+                        //e.printStackTrace();
 
                     }
                     finally {
                         System.out.println("close connection..");
                         closeConnection();
+
                     }
 
 
