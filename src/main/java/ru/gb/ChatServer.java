@@ -8,30 +8,33 @@ import java.net.Socket;
 import java.util.Scanner;
 
 public class ChatServer {
+    private static boolean exitLoop;
 
     public static void main(String[] args) {
-        final ChatServer server = new ChatServer();
-        server.startServer();
 
-    }
-    public void startServer(){
-        try(ServerSocket serverSocket = new ServerSocket(9090)) {   //если в скобках записать то можно без Finally)
+        try(ServerSocket serverSocket = new ServerSocket(9090)) {   //если в скобках записать то можно без Finally - не закрывать)
             System.out.println("Сервер запущен, ожидаем коннекта....");
             Socket socket = serverSocket.accept(); //блокирующий метод ждем подключения клиента
             System.out.println("Клиент подключился");
             final DataInputStream in = new DataInputStream(socket.getInputStream());// получение сообщений
             final DataOutputStream out = new DataOutputStream(socket.getOutputStream()); //отправление сообщений
 
-            Thread t1 = new Thread(){
+            final Thread t1 = new Thread(){
+
 
                 @Override
                 public void run() {
-                    System.out.println("1111111");
                     try {
                         Scanner scanner = new Scanner(System.in);
-                        while (true) {
+                        while (!exitLoop) {
                             String outputMessage = scanner.nextLine();
                             out.writeUTF(outputMessage);
+
+                            if("/end".equalsIgnoreCase(outputMessage)){
+                                out.writeUTF("/end");
+                                break;
+                            }
+
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -42,14 +45,16 @@ public class ChatServer {
             };
             t1.start();
 
+
             while (true){
                 String inputMessage  = in.readUTF(); // блокирующий метод, ждем сообщения /   .readUTF() - прочтет строку а не байты
-                System.out.println("От клиента: "+inputMessage);
-                if( "/end".equalsIgnoreCase(inputMessage)){    // poison pill - ядовитая таблетка при написании енд выйдет из цикла
-                    out.writeUTF(inputMessage);
-                        break;                                 //if( message.equalsIgnoreCase("/end") - пишем это а потом Flip через Alt+Enter
-                }                                           //Защищаемся от нуля в мессадже.  equalsIgnoreCase - сравнивает без учета регистра
+                if("/end".equalsIgnoreCase(inputMessage)){
+                    out.writeUTF("/end");
+                    exitLoop = true;
+                    break;
 
+                }
+                System.out.println("От клиента: "+inputMessage);
             }
 
         } catch (IOException e) {
@@ -57,7 +62,5 @@ public class ChatServer {
             throw new RuntimeException();
         }
 
-
-        System.out.println("Stop server....");
     }
 }
