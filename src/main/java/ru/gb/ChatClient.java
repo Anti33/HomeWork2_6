@@ -6,14 +6,14 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.Scanner;
 
-public class EchoClient {
+public class ChatClient {
     Socket socket;  // 'эти три переменные нужны на уровне класса: socket, in, out
     private DataInputStream in;
     private DataOutputStream out;
 
     public static void main(String[] args) {/// тоже есть метод мейн
 
-        final EchoClient client = new EchoClient();
+        final ChatClient client = new ChatClient();
         client.start();
 
     }
