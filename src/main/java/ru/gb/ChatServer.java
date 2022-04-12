@@ -5,20 +5,43 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Scanner;
 
 public class ChatServer {
 
     public static void main(String[] args) {
+        final ChatServer server = new ChatServer();
+        server.startServer();
 
-    //Socket socket = null;
-
-
+    }
+    public void startServer(){
         try(ServerSocket serverSocket = new ServerSocket(9090)) {   //если в скобках записать то можно без Finally)
             System.out.println("Сервер запущен, ожидаем коннекта....");
             Socket socket = serverSocket.accept(); //блокирующий метод ждем подключения клиента
             System.out.println("Клиент подключился");
-            DataInputStream in = new DataInputStream(socket.getInputStream());// получение сообщений
-            DataOutputStream out = new DataOutputStream(socket.getOutputStream()); //отправление сообщений
+            final DataInputStream in = new DataInputStream(socket.getInputStream());// получение сообщений
+            final DataOutputStream out = new DataOutputStream(socket.getOutputStream()); //отправление сообщений
+
+            Thread t1 = new Thread(){
+
+                @Override
+                public void run() {
+                    System.out.println("1111111");
+                    try {
+                        Scanner scanner = new Scanner(System.in);
+                        while (true) {
+                            String outputMessage = scanner.nextLine();
+                            out.writeUTF(outputMessage);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+
+                }
+            };
+            t1.start();
+
             while (true){
                 String inputMessage  = in.readUTF(); // блокирующий метод, ждем сообщения /   .readUTF() - прочтет строку а не байты
                 System.out.println("От клиента: "+inputMessage);
@@ -29,13 +52,12 @@ public class ChatServer {
 
             }
 
-
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException();
         }
 
+
         System.out.println("Stop server....");
     }
-
 }
